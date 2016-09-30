@@ -11,8 +11,8 @@ import datetime as dt
 import pandas as pd
 import pickle
 
-# DREW DEFALT PERCENTAGE HERE!!!!
-DREW_DEFAULT_PERCENTAGE = 0.7  # FIXME
+# aname DEFALT PERCENTAGE HERE!!!!
+ANAME_DEFAULT_PERCENTAGE = 0.7  # FIXME
 
 # Setting up arguments
 parser = argparse.ArgumentParser()
@@ -76,10 +76,10 @@ def validate_percentage(percentage):
 def validate_user(user_arg):
     """Validate the user argument"""
     character = user_arg[0].lower()
-    if character == 'd':
-        return 'Drew'
-    elif character == 'g':
-        return 'Gavin'
+    if character == 'a':
+        return 'Aname'
+    elif character == 'b':
+        return 'Bname'
     else:
         exit('Not a valid user. Must be either (d)rew or (g)avin.')
 
@@ -93,20 +93,21 @@ def validate_row(df, row):
 
 # DF Getters
 def get_percentages(percentage, payer):
-    """Given the percentage argument makes variables percentage_drew and
-     percentage_gavin"""
+    """Given the percentage argument makes variables PERSON_1 and
+     PERSON_2"""
+
     if percentage:
         percentage = validate_percentage(percentage)
-        if payer is 'Drew':
-            PERCENTAGE_DREW = percentage
-            PERCENTAGE_GAVIN = (1 - percentage)
+        if payer is 'Aname':
+            PERSON_1 = percentage
+            PERSON_2 = (1 - percentage)
         else:
-            PERCENTAGE_GAVIN = percentage
-            PERCENTAGE_DREW = (1 - percentage)
+            PERSON_2 = percentage
+            PERSON_1 = (1 - percentage)
     else:
-        PERCENTAGE_DREW = DREW_DEFAULT_PERCENTAGE
-        PERCENTAGE_GAVIN = (1 - PERCENTAGE_DREW)
-    return (PERCENTAGE_DREW, PERCENTAGE_GAVIN)
+        PERSON_1 = aname_DEFAULT_PERCENTAGE
+        PERSON_2 = (1 - PERSON_1)
+    return (PERSON_1, PERSON_2)
 
 
 def get_description(message_argument):
@@ -123,8 +124,8 @@ def get_row(first=False):
         dictionary_row = {
             'datetime': NOW,
             'payer': USER,
-            'drew_owes': get_actual_amount(USER, TOTAL_VALUE)[0],
-            'gavin_owes': get_actual_amount(USER, TOTAL_VALUE)[1],
+            'aname_owes': get_actual_amount(USER, TOTAL_VALUE)[0],
+            'Bname_owes': get_actual_amount(USER, TOTAL_VALUE)[1],
             'total_value': TOTAL_VALUE,
             'description': DESCRIPTION
         }
@@ -132,8 +133,8 @@ def get_row(first=False):
         dictionary_row = {
             'datetime': [NOW],
             'payer': [USER],
-            'drew_owes': [get_actual_amount(USER, TOTAL_VALUE)[0]],
-            'gavin_owes': [get_actual_amount(USER, TOTAL_VALUE)[1]],
+            'aname_owes': [get_actual_amount(USER, TOTAL_VALUE)[0]],
+            'Bname_owes': [get_actual_amount(USER, TOTAL_VALUE)[1]],
             'total_value': [TOTAL_VALUE],
             'description': [DESCRIPTION]
         }
@@ -142,12 +143,12 @@ def get_row(first=False):
 
 def get_actual_amount(payer, total_value):
     """Returns the actual amount that the payer (-) is owed and that the payee
-     (+) owes. Drew is first element of tuple"""
-    if payer is 'Drew':
-        value = (total_value * PERCENTAGE_GAVIN)
+     (+) owes. aname is first element of tuple"""
+    if payer is 'aname':
+        value = (total_value * PERSON_2)
         return (-value, value)
-    elif payer is 'Gavin':
-        value = (total_value * PERCENTAGE_DREW)
+    elif payer is 'Bname':
+        value = (total_value * PERSON_1)
         return (value, -value)
 
 
@@ -195,7 +196,7 @@ def main(arguments):
     USER = validate_user(arguments.user)
     if arguments.add:
         TOTAL_VALUE = arguments.add
-    PERCENTAGE_DREW, PERCENTAGE_GAVIN = get_percentages(arguments.percentage, USER)  # Sets PERCENTAGE_DREW and PERCENTAGE_GAVIN
+    PERSON_1, PERSON_2 = get_percentages(arguments.percentage, USER)  # Sets PERSON_1 and PERSON_2
     NOW = dt.datetime.now()
     DESCRIPTION = get_description(arguments.message)
     PICKLE_PATH = join(getcwd(), PICKLE_NAME)
