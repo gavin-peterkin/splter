@@ -1,0 +1,222 @@
+#!/usr/bin/env python3.5
+
+from os import getcwd
+from os.path import join, isfile
+from pprint import pprint
+from sys import exit
+from tabulate import tabulate
+
+import argparse
+import datetime as dt
+import pandas as pd
+import pickle
+
+# DREW DEFALT PERCENTAGE HERE!!!!
+DREW_DEFAULT_PERCENTAGE = 0.7  # FIXME
+
+# Setting up arguments
+parser = argparse.ArgumentParser()
+# Required
+group0 = parser.add_mutually_exclusive_group()
+group0.add_argument(
+    'setup', action='store_true',
+    help='Run this once for initial setup. Running again will reset and delete'
+    ' all stored data!'
+)
+group0.add_argument(
+    'user', type=str,
+    help='The user. Users must be initialized with setup prior to first use.'
+)
+
+group1 = parser.add_mutually_exclusive_group()
+group1.add_argument(
+    '-a', '--add', type=float,
+    help='The dollar amount that the user paid'
+)
+group1.add_argument(
+    '-c', '--calc',
+    help='Calculate what the user owes or is owed',
+    action='store_true'
+)
+group1.add_argument(
+    '-l', '--list',
+    help='List all previous transactions',
+    action='store_true'
+)
+group1.add_argument(
+    '-d', '--delete', type=int,
+    help='Delete row by index'
+)
+
+# Optional
+parser.add_argument(
+    '-p', '--percentage',
+    type=float,
+    help='The fraction that the payer is responsible for. Must be between'
+    ' 0 and 1 inclusive. The other users will be resposible for an equal'
+    ' proportion of the remainder.'
+)
+parser.add_argument(
+    '-m', '--message',
+    type=str,
+    help='Optional message about the transaction'
+)
+
+arguments = parser.parse_args()
+
+
+# Functions to validate arguments and set up variables
+def validate_percentage(percentage):
+    """Validate number is between 0 and 1 inclusive"""
+    if not (0 <= percentage <= 1):
+        exit('percentage must be between 0 and 1 inclusive')
+    return percentage
+
+
+def validate_user(user_arg):
+    """Validate the user argument"""
+    character = user_arg[0].lower()
+    if character == 'd':
+        return 'Drew'
+    elif character == 'g':
+        return 'Gavin'
+    else:
+        exit('Not a valid user. Must be either (d)rew or (g)avin.')
+
+
+def validate_row(df, row):
+    """Makes sure that the index row is actually in the df"""
+    if not row in df.index:
+        exit('Not a valid row index')
+    return row
+
+
+# DF Getters
+def get_percentages(percentage, payer):
+    """Given the percentage argument makes variables percentage_drew and
+     percentage_gavin"""
+    if percentage:
+        percentage = validate_percentage(percentage)
+        if payer is 'Drew':
+            PERCENTAGE_DREW = percentage
+            PERCENTAGE_GAVIN = (1 - percentage)
+        else:
+            PERCENTAGE_GAVIN = percentage
+            PERCENTAGE_DREW = (1 - percentage)
+    else:
+        PERCENTAGE_DREW = DREW_DEFAULT_PERCENTAGE
+        PERCENTAGE_GAVIN = (1 - PERCENTAGE_DREW)
+    return (PERCENTAGE_DREW, PERCENTAGE_GAVIN)
+
+
+def get_description(message_argument):
+    """Returns a description string from the message argument"""
+    if message_argument:
+        return message_argument
+    else:
+        return None
+
+
+def get_row(first=False):
+    """Returns a row for the df"""
+    if not first:
+        dictionary_row = {
+            'datetime': NOW,
+            'payer': USER,
+            'drew_owes': get_actual_amount(USER, TOTAL_VALUE)[0],
+            'gavin_owes': get_actual_amount(USER, TOTAL_VALUE)[1],
+            'total_value': TOTAL_VALUE,
+            'description': DESCRIPTION
+        }
+    else:
+        dictionary_row = {
+            'datetime': [NOW],
+            'payer': [USER],
+            'drew_owes': [get_actual_amount(USER, TOTAL_VALUE)[0]],
+            'gavin_owes': [get_actual_amount(USER, TOTAL_VALUE)[1]],
+            'total_value': [TOTAL_VALUE],
+            'description': [DESCRIPTION]
+        }
+    return dictionary_row
+
+
+def get_actual_amount(payer, total_value):
+    """Returns the actual amount that the payer (-) is owed and that the payee
+     (+) owes. Drew is first element of tuple"""
+    if payer is 'Drew':
+        value = (total_value * PERCENTAGE_GAVIN)
+        return (-value, value)
+    elif payer is 'Gavin':
+        value = (total_value * PERCENTAGE_DREW)
+        return (value, -value)
+
+
+def append_row(df, row):
+    """Appends row to df"""
+    df = df.append(row, ignore_index=True)
+    print('Appended row:\n')
+    pprint(row)
+    return df
+
+
+def get_df(pickle_path):
+    if isfile(pickle_path):
+        return pd.read_pickle(pickle_path)
+    else:
+        return pd.DataFrame()
+
+
+def get_value(person):
+    """Returns how much person owes (+) or is owed (-)"""
+    column_name = '{}_owes'.format(person.lower())
+    return df[column_name].sum()
+
+
+def check_value(person):
+    value = get_value(person)
+    if value >= 0:
+        print('{0} owes ${1:.2f}'.format(person, abs(value)))
+    else:
+        print('{0} is owed ${1:.2f}'.format(person, abs(value)))
+
+
+def set_up_users(arguments):
+
+
+
+def verify_user_setup(arguments):
+    pass
+
+def main(arguments):
+    # Check if users are set up
+    verify_user_setup(arguments)
+    # Set up variables and filepaths and verify arguments are valid
+    PICKLE_NAME = '.payment_history_df.pkl'
+    USER = validate_user(arguments.user)
+    if arguments.add:
+        TOTAL_VALUE = arguments.add
+    PERCENTAGE_DREW, PERCENTAGE_GAVIN = get_percentages(arguments.percentage, USER)  # Sets PERCENTAGE_DREW and PERCENTAGE_GAVIN
+    NOW = dt.datetime.now()
+    DESCRIPTION = get_description(arguments.message)
+    PICKLE_PATH = join(getcwd(), PICKLE_NAME)
+    # Set up dataframe
+    df = get_df(PICKLE_PATH)
+    # Do stuff
+    if arguments.list:
+        print(tabulate(df, headers='keys', tablefmt='fancy_grid'))
+    if arguments.add:
+        df = append_row(df, get_row())
+    if arguments.calc:
+        check_value(USER)
+    if arguments.delete:
+        row = validate_row(df, arguments.delete)
+        df.drop([row], axis=0, inplace=True)
+        print('Dropped row {}'.format(row))
+    df.to_pickle(PICKLE_PATH)
+
+
+if __name__ == '__main__':
+    try:
+        main(arguments)
+    except KeyboardInterrupt:
+        exit()
