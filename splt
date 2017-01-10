@@ -8,6 +8,7 @@ from tabulate import tabulate
 
 import argparse
 import datetime as dt
+import json
 import pandas as pd
 import pickle
 
@@ -21,7 +22,7 @@ group0 = parser.add_mutually_exclusive_group()
 group0.add_argument(
     'setup', action='store_true',
     help='Run this once for initial setup. Running again will reset and delete'
-    ' all stored data!'
+    ' all stored data.'
 )
 group0.add_argument(
     'user', type=str,
@@ -181,16 +182,55 @@ def check_value(person):
         print('{0} is owed ${1:.2f}'.format(person, abs(value)))
 
 
-def set_up_users(arguments):
+def get_y_n():
+    response = None
+    while response not in ['y', 'n']:
+        response = input("\tEnter (Y)es or (N)o: ")
+        response = response[0].lower()
+        if response == 'y':
+            return True
+        elif response == 'n'
+            return False
+        else:
+            print('\tTry again.')
+
+
+def set_up_users():
+    print("\tRunning first time setup ...")
+    user_count = None
+    while (type(user_count) is not int) or (user_count < 2):
+        user_count = input("Enter an integer indicating the number of users: ")
+        try:
+            user_count = int(user_count)
+        except:
+            print("{} is a not an integer.".format(user_count))
+        if user_count < 2:
+            print("You must enter an integer greater than 2.")
+    users = []
+    accepted_names = False
+    while accepted_names == False:
+        for i in range(user_count):
+            new_user = input("Enter user number {}'s name: ".format(i))
+            users += [new_user]
+        for i, user in enumerate(users):
+            print("User {}: {}".format(i, user))
+        print("Are these the correct users?")
+        accepted_names = get_y_n()
+    percentages
 
 
 
-def verify_user_setup(arguments):
-    pass
+def verify_user_setup():
+    cwd = getcwd()
+    if is_file(cwd + '.spltrc'):
+        # read in settings HERE
+    else:
+        set_up_users()
+    return # something about users
 
 def main(arguments):
     # Check if users are set up
-    verify_user_setup(arguments)
+    verify_user_setup()
     # Set up variables and filepaths and verify arguments are valid
     PICKLE_NAME = '.payment_history_df.pkl'
     USER = validate_user(arguments.user)
