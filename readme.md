@@ -50,7 +50,7 @@ Your username is always required for any type of interaction with the ledger.
 positional arguments:
   username              Your username (str). If this is first time setup you
                         will be guided through the process
-
+```
 optional arguments:
   -h, --help            show this help message and exit
   -a, --add             A new transaction will be added to the ledger.
@@ -63,3 +63,4 @@ optional arguments:
                         Remove user by their name. Note that their past
                         transactions will remain.
   -e EDIT, --edit EDIT  Edit a user's default percentage to be a new value
+```
