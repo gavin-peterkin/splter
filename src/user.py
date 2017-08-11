@@ -83,7 +83,13 @@ You will be asked to provide a new username. Note that you will use this usernam
 to identify yourself when entering new amounts. Other user(s) should also be able
 to ID you on the basis of this name.
         """)
-        self.username = self._get_validate_response(input_type='username', object_type=str)
+        if self.username != None:
+            print('Use the username: "{}"?'.format(self.username))
+            resp = self._get_bool_response()
+            if not resp:
+                self.username = self._get_validate_response(input_type='username', object_type=str)
+        else:
+            self.username = self._get_validate_response(input_type='username', object_type=str)
         # Percentage
         print("""
 Thanks, {user}! You are now asked to provide a percentage that will reflect the
