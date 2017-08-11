@@ -34,7 +34,7 @@ themselves.
 It makes the most sense to install this on a shared computer or a server, so users
 can remote in and enter their purchases into the ledger as they're accrued.
 
-It requires unix and python2.
+It requires unix-based OS, git, pip, and python2.
 
 1. `git clone <path_to_this_repo>`
 2. `cd` into `splter/src` and run `chmod +x setup.sh`
