@@ -66,7 +66,7 @@ class Ledger(object):
 
     def _get_current_commit_id(self):
         try:
-            last_entry_id = max([id_ for id_ in self.complete_ledger.keys() if type(id_) == int])
+            last_entry_id = max([int(id_) for id_ in self.complete_ledger.keys() if id_ != self._metadata_key])
         except:
             last_entry_id = -1
         return last_entry_id
@@ -106,7 +106,7 @@ class Ledger(object):
         }
         self._add_entry(new_entry)
         _ = all_users_percentages.pop(self.username)
-        self._balance_books(self.group_label, all_users_percentages, total_amount, message)
+        self._balance_books(all_users_percentages, total_amount, message)
         print("The following information will be committed:")
         self._pretty_print([
             id_ for id_ in self.complete_ledger.keys() if type(id_) == int and id_ > start_commit_id
@@ -138,10 +138,11 @@ class Ledger(object):
 
     def delete_transaction(self, id_):
         user_ids = [
-            id_ for id_ in self.complete_ledger.keys()
-            if (self.complete_ledger[id_].get(self._user_entry_key, None) == self.username)
+            id_l for id_l in self.complete_ledger.keys()
+            if ((self.complete_ledger[id_l].get(self._user_entry_key, None) == self.username)
+            and (id_l != self._metadata_key))
         ]
-        assert id_ in ids, "Transaction {} does not belong to user {}".format(id_, self.username)
+        assert id_ in user_ids, "Transaction {} does not belong to user {}".format(id_, self.username)
 
         print("Delete transaction: \n")
         self._pretty_print([id_])

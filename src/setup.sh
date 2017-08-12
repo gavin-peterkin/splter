@@ -5,7 +5,7 @@
 echo "Installing dependency"
 pip install -r ../requirements.txt
 
-splt_path="`pwd`/splt"
+splt_path=`pwd`
 chmod +x $splt_path
 
 if [ $1 ]; then
@@ -19,7 +19,6 @@ read -n 1 resp
 if [ "$resp" == 'y' ] || [ "$resp" == 'Y' ]; then
   printf '\n# Added by splter\n' >> $bashrc_path
   echo "export PATH=\$PATH:$splt_path" >> $bashrc_path
-  echo "alias splt=$splt_path" >> $bashrc_path
   echo "Appended 'splt' command to path"
 fi
 

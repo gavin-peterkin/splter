@@ -32,7 +32,7 @@ def parse_args():
         action='store_true'
     )
     action_group.add_argument(
-        '-d', '--delete', type=int,
+        '-d', '--delete', type=str,
         help='Delete transaction by it\'s ID'
     )
     action_group.add_argument(
@@ -52,7 +52,7 @@ def add_user_transaction(user, ledger):
     print('Enter an optional message to desribe the transaction.')
     message = get_validate_response(input_type='message', object_type=str)
     ledger.add_transaction(
-        user.username, user.users_group, total_amount,
+        user.username, total_amount,
         user.all_users_percentages, message=message
     )
 
@@ -62,27 +62,28 @@ def calc_user_debt(ledger):
     print("You owe (+) or are owed (-): {:.2f}".format(amount_due))
 
 
-def perform_action(args, user, ledger):
-    if args.add:
+def perform_action(pargs, user, ledger):
+    if pargs.add:
         add_user_transaction(user, ledger)
-    elif args.list:
+    elif pargs.list:
         ledger.show_user_transactions()
-    elif args.calc:
+    elif pargs.calc:
         calc_user_debt(ledger)
-    elif args.delete != None:
-        ledger.delete_transaction(args.delete)
-    elif args.remove:
+    elif pargs.delete != None:
+        id_ = str(pargs.delete)
+        ledger.delete_transaction(id_)
+    elif pargs.remove:
         user.remove_user()
-    elif args.edit != None:
-        user.update_percentage(args.edit)
+    elif pargs.edit != None:
+        user.update_percentage(pargs.edit)
 
 
 def main():
     try:
-        args = parse_args()
-        user = User(args.username)
+        pargs = parse_args()
+        user = User(pargs.username)
         ledger = Ledger(user.username, user.group_label)
-        perform_action(args, user, ledger)
+        perform_action(pargs, user, ledger)
     except KeyboardInterrupt:
         sys.exit('Exiting')
 
